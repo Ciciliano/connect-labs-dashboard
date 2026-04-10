@@ -24,6 +24,15 @@ const provider = new GoogleAuthProvider();
 const db = getFirestore(app);
 const appId = import.meta.env.VITE_APP_ID || 'connect-labs-exec-v5';
 
+// --- Logo Vetorial Connect Labs ---
+const BrandLogo = ({ className = "w-12 h-12", strokeWidth = "5" }) => (
+  <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth={strokeWidth} className={className}>
+    <circle cx="50" cy="50" r="46" />
+    <path d="M 44 4 L 44 78 L 74 78" strokeLinecap="square" strokeLinejoin="miter" />
+    <path d="M 68 26 A 25 25 0 1 0 68 66" strokeLinecap="square" />
+  </svg>
+);
+
 // --- Definição das Fases com Deadlines (Meses) ---
 const PHASES = [
   { id: 1, name: 'Fundação Comercial', period: 'M1-M2', deadlineMonth: 2, mrrTarget: 2600 },
@@ -258,7 +267,9 @@ export default function App() {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 selection:bg-blue-500/30">
         <div className="w-full max-w-sm bg-slate-900 border border-slate-800 px-8 py-10 rounded-[3rem] shadow-2xl flex flex-col items-center">
-          <div className="w-20 h-20 bg-blue-600 rounded-[2rem] flex items-center justify-center font-black text-4xl text-white mb-6">C</div>
+          <div className="w-20 h-20 bg-blue-600/10 text-blue-500 rounded-[2rem] flex items-center justify-center mb-6 shadow-inner border border-blue-500/20">
+            <BrandLogo className="w-10 h-10" strokeWidth="6" />
+          </div>
           <h1 className="text-2xl font-black text-white tracking-tighter uppercase mb-2 text-center">Connect Labs</h1>
           <p className="text-slate-500 uppercase tracking-widest text-[10px] font-bold mb-8 text-center">Executive Access</p>
           
@@ -287,11 +298,13 @@ export default function App() {
       
       {/* Sidebar Original */}
       <aside className="hidden md:flex flex-col w-72 bg-slate-900 border-r border-slate-800 p-8 gap-10 shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center font-black text-2xl shadow-xl shadow-blue-900/40">C</div>
+        <div className="flex items-center gap-4">
+          <div className="text-blue-500 flex shrink-0">
+            <BrandLogo className="w-12 h-12 drop-shadow-lg" strokeWidth="6" />
+          </div>
           <div>
-            <span className="text-xl font-black tracking-tighter block leading-none">CONNECT</span>
-            <span className="text-[10px] font-bold text-slate-500 tracking-[0.3em] uppercase">Executive OS</span>
+            <span className="text-xl font-black tracking-tighter block leading-none text-white transition-colors">CONNECT</span>
+            <span className="text-[10px] font-bold text-slate-500 tracking-[0.3em] uppercase">Executive <span className="text-blue-500">OS</span></span>
           </div>
         </div>
         
@@ -328,9 +341,14 @@ export default function App() {
 
       {/* Mobile Nav Original */}
       <header className="md:hidden sticky top-0 z-50 flex items-center justify-between p-5 bg-slate-900/90 backdrop-blur-md border-b border-slate-800">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-sm shadow-lg">C</div>
-          <span className="font-black text-sm tracking-tighter uppercase">Connect Labs</span>
+        <div className="flex items-center gap-3">
+          <div className="text-blue-500">
+            <BrandLogo className="w-8 h-8 drop-shadow-md" strokeWidth="6" />
+          </div>
+          <div className="flex flex-col">
+            <span className="font-black text-sm tracking-tighter uppercase leading-none">CONNECT</span>
+            <span className="text-[8px] font-bold text-slate-500 tracking-[0.3em] uppercase">Executive</span>
+          </div>
         </div>
         <button onClick={handleLogout} className="text-slate-500 hover:text-red-400"><LogOut size={18} /></button>
       </header>
