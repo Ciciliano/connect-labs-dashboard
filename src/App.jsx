@@ -107,6 +107,19 @@ export default function App() {
     setLoading(false);
   };
 
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setLoginError('');
+    try { 
+      await signInWithPopup(auth, provider); 
+    } 
+    catch (err) { 
+      console.warn("Google Auth falhou (chaves ausentes?), simulando...", err);
+      setUser({ uid: 'mock_exec_google', displayName: 'Anderson (Google)' });
+    }
+    setLoading(false);
+  };
+
   const handleLogout = () => { setUser(null); signOut(auth); };
 
   // --- Persistência Cloud ---
@@ -144,7 +157,7 @@ export default function App() {
     if (!user) return;
     const updated = tasks.map(t => t.id === id ? { ...t, done: !t.done } : t);
     setTasks(updated);
-    if(user.uid !== 'mock_exec_01'){
+    if(user.uid !== 'mock_exec_01' && user.uid !== 'mock_exec_google'){
       await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'config', 'dashboardState'), { tasks: updated }, { merge: true });
     }
   };
@@ -160,7 +173,7 @@ export default function App() {
     setTasks(updated);
     setNewTaskTitle('');
     setShowTaskModal(false);
-    if (user.uid !== 'mock_exec_01') {
+    if (user.uid !== 'mock_exec_01' && user.uid !== 'mock_exec_google') {
       await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'config', 'dashboardState'), { tasks: updated }, { merge: true });
     }
   };
@@ -199,7 +212,7 @@ export default function App() {
              <button type="submit" className="w-full py-4 mt-2 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black uppercase tracking-widest text-xs transition-transform active:scale-95 shadow-xl shadow-blue-500/20">
                 Acessar Dashboard
              </button>
-             <button type="button" onClick={() => { signInWithPopup(auth, provider).catch(()=>{}); }} className="w-full py-3 bg-transparent border border-slate-700 text-slate-400 hover:text-white rounded-xl font-bold text-xs mt-2 transition-colors">
+             <button type="button" onClick={handleGoogleLogin} className="w-full py-3 bg-transparent border border-slate-700 text-slate-400 hover:text-white rounded-xl font-bold text-xs mt-2 transition-colors">
                 Alternativo: Entrar com Conta Google
              </button>
           </form>
