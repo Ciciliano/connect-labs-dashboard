@@ -76,6 +76,8 @@ export default function App() {
   const [metrics, setMetrics] = useState({
     breakEven: 'R$ 1.800', reservaTarget: 'R$ 5.400', clientesAlvo: '2 un (R$ 2.600)', horasOutbound: '4h/sem'
   });
+  const [editingNoteTaskId, setEditingNoteTaskId] = useState(null);
+  const [noteDraft, setNoteDraft] = useState('');
   
   const currentProjectMonth = 1.2;
 
@@ -219,6 +221,22 @@ export default function App() {
     } else {
       localStorage.setItem(`dashboardState_${user.uid}`, JSON.stringify({ tasks: updated, metrics }));
     }
+  };
+
+  const saveNote = async (id, text) => {
+    if (!user) return;
+    const updated = tasks.map(t => t.id === id ? { ...t, note: text } : t);
+    setTasks(updated);
+    
+    if (user.uid !== 'mock_exec_01' && user.uid !== 'mock_exec_google') {
+      try {
+        await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'config', 'dashboardState'), { tasks: updated }, { merge: true });
+      } catch(e) { console.error(e); }
+    } else {
+      localStorage.setItem(`dashboardState_${user.uid}`, JSON.stringify({ tasks: updated, metrics }));
+    }
+    setEditingNoteTaskId(null);
+    setNoteDraft('');
   };
 
   const phaseStats = useMemo(() => PHASES.map(p => {
@@ -549,10 +567,55 @@ export default function App() {
                               </div>
                               <span className={`text-[8px] sm:text-[9px] font-black px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl uppercase tracking-widest text-right shrink-0 whitespace-normal line-clamp-2 ${h.bg} ${h.color}`}>{h.label}</span>
                             </div>
-                            <span className={`text-[13px] sm:text-[15px] font-black leading-snug h-auto sm:h-12 relative z-10 break-words ${task.done ? 'text-slate-600 line-through' : 'text-slate-200'}`}>{task.title}</span>
-                            <div className="mt-auto flex items-center gap-2 text-slate-500 group-hover:text-blue-400 transition-colors pt-4 border-t border-slate-800/50">
-                               <Timer size={14} />
-                               <span className="text-[10px] font-black uppercase tracking-widest">Alvo: Mês {task.targetMonth}</span>
+                            <span className={`text-[13px] sm:text-[15px] font-black leading-snug h-auto min-h-[3rem] relative z-10 break-words ${task.done ? 'text-slate-600 line-through' : 'text-slate-200'}`}>{task.title}</span>
+                            
+                            <div className="mt-auto pt-4 border-t border-slate-800/50 flex flex-col gap-4">
+                                <div className="flex justify-between items-center w-full">
+                                   <div className="flex items-center gap-2 text-slate-500 group-hover:text-blue-400 transition-colors">
+                                      <Timer size={14} />
+                                      <span className="text-[10px] font-black uppercase tracking-widest">Alvo: Mês {task.targetMonth}</span>
+                                   </div>
+                                   <button 
+                                      onClick={(e) => { e.stopPropagation(); setEditingNoteTaskId(task.id); setNoteDraft(task.note || ''); }}
+                                      className="p-2 -m-2 rounded-xl text-slate-500 hover:text-blue-400 hover:bg-blue-500/10 transition-colors pointer-events-auto"
+                                      title="Adicionar Anotação"
+                                   >
+                                      <Plus size={16} strokeWidth={3} />
+                                   </button>
+                                </div>
+                                
+                                {task.note && editingNoteTaskId !== task.id && (
+                                  <div className="p-3.5 bg-slate-950/80 rounded-xl border border-slate-800/60 text-xs text-slate-400 leading-relaxed max-h-24 overflow-y-auto w-full">
+                                    {task.note}
+                                  </div>
+                                )}
+                                
+                                {editingNoteTaskId === task.id && (
+                                  <div className="flex flex-col gap-3 w-full" onClick={e => e.stopPropagation()}>
+                                    <textarea 
+                                      autoFocus
+                                      value={noteDraft}
+                                      onChange={e => setNoteDraft(e.target.value)}
+                                      className="w-full bg-slate-950 text-slate-300 p-3.5 rounded-xl border border-slate-700 text-xs focus:border-blue-500 outline-none resize-none ring-offset-slate-900 border-b-2"
+                                      placeholder="Sua anotação aqui... ex: Depende de fulano"
+                                      rows={2}
+                                    />
+                                    <div className="flex gap-2 justify-end">
+                                      <button 
+                                        onClick={() => setEditingNoteTaskId(null)} 
+                                        className="px-3 py-1.5 rounded-lg text-slate-500 hover:text-white text-[10px] font-bold uppercase transition-colors"
+                                      >
+                                        Cancelar
+                                      </button>
+                                      <button 
+                                        onClick={() => saveNote(task.id, noteDraft)} 
+                                        className="px-4 py-1.5 rounded-lg bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-blue-500 shadow-lg shadow-blue-500/30 transition-transform active:scale-95"
+                                      >
+                                        Salvar
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
                             </div>
                           </div>
                         );
