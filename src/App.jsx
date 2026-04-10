@@ -81,8 +81,18 @@ export default function App() {
 
   // --- Lógica de Autenticação Segura ---
   useEffect(() => {
+    const mockSession = localStorage.getItem('mock_user_session');
+    if (mockSession) {
+      try {
+        setUser(JSON.parse(mockSession));
+        setLoading(false);
+        return; // não depende do firebase se for mock
+      } catch (e) {}
+    }
+
     const unsub = onAuthStateChanged(auth, (u) => {
-      setUser(u);
+      if (u) setUser(u); // Firebase override se validado
+      else if (!localStorage.getItem('mock_user_session')) setUser(null);
       setLoading(false);
     });
     return () => unsub();
@@ -99,7 +109,9 @@ export default function App() {
       console.warn("Firebase Auth falhou, verificando mock...");
       // Hardcode provisório de segurança (Fallback Local / Produção sem chaves)
       if (loginEmail === 'anderson.santos001@gmail.com' && loginPass === '$22$Aa01@$$') {
-         setUser({ uid: 'mock_exec_01', displayName: 'Anderson Santos' });
+         const mockUser = { uid: 'mock_exec_01', displayName: 'Anderson Santos' };
+         setUser(mockUser);
+         localStorage.setItem('mock_user_session', JSON.stringify(mockUser));
       } else {
          setLoginError('Credenciais inválidas ou não registradas.');
       }
@@ -115,12 +127,18 @@ export default function App() {
     } 
     catch (err) { 
       console.warn("Google Auth falhou (chaves ausentes?), simulando...", err);
-      setUser({ uid: 'mock_exec_google', displayName: 'Anderson (Google)' });
+      const mockUser = { uid: 'mock_exec_google', displayName: 'Anderson (Google)' };
+      setUser(mockUser);
+      localStorage.setItem('mock_user_session', JSON.stringify(mockUser));
     }
     setLoading(false);
   };
 
-  const handleLogout = () => { setUser(null); signOut(auth); };
+  const handleLogout = () => { 
+    setUser(null); 
+    localStorage.removeItem('mock_user_session');
+    signOut(auth); 
+  };
 
   // --- Persistência Cloud & LocalStorage Fallback ---
   useEffect(() => {
