@@ -88,7 +88,7 @@ export default function App() {
   const [editingNoteTaskId, setEditingNoteTaskId] = useState(null);
   const [noteDraft, setNoteDraft] = useState('');
   
-  const currentProjectMonth = 1.2;
+  const currentProjectMonth = 0.2; // Mês 0 (0 a 0.99) = Abril / Mês 1 do plano
 
   // --- Lógica de Autenticação Segura ---
   useEffect(() => {
@@ -369,7 +369,7 @@ export default function App() {
                    <div className="p-3 bg-blue-600/10 rounded-2xl"><Bell className="text-blue-500" size={20} /></div>
                    <div>
                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Timeline Atual</p>
-                     <p className="text-sm font-bold text-white uppercase tracking-tighter">Janela: {MONTHS[Math.floor(currentProjectMonth)]} / Mês 02</p>
+                     <p className="text-sm font-bold text-white uppercase tracking-tighter">Janela: {MONTHS[Math.floor(currentProjectMonth)]} / Mês {(Math.floor(currentProjectMonth) + 1).toString().padStart(2, '0')}</p>
                    </div>
                 </div>
               </div>
