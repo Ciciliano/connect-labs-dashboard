@@ -122,9 +122,24 @@ export default function App() {
 
   const handleLogout = () => { setUser(null); signOut(auth); };
 
-  // --- Persistência Cloud ---
+  // --- Persistência Cloud & LocalStorage Fallback ---
   useEffect(() => {
     if (!user) return;
+    
+    if (user.uid === 'mock_exec_01' || user.uid === 'mock_exec_google') {
+      const saved = localStorage.getItem(`dashboardState_${user.uid}`);
+      if (saved) {
+        try {
+          const data = JSON.parse(saved);
+          if(data.tasks) setTasks(data.tasks);
+          if(data.metrics) setMetrics(data.metrics);
+        } catch(e) {}
+      } else {
+        localStorage.setItem(`dashboardState_${user.uid}`, JSON.stringify({ tasks: INITIAL_TASKS, metrics }));
+      }
+      return;
+    }
+
     try {
       const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'config', 'dashboardState');
       const unsub = onSnapshot(docRef, (snap) => {
@@ -157,8 +172,13 @@ export default function App() {
     if (!user) return;
     const updated = tasks.map(t => t.id === id ? { ...t, done: !t.done } : t);
     setTasks(updated);
+    
     if(user.uid !== 'mock_exec_01' && user.uid !== 'mock_exec_google'){
-      await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'config', 'dashboardState'), { tasks: updated }, { merge: true });
+      try {
+        await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'config', 'dashboardState'), { tasks: updated }, { merge: true });
+      } catch(e) { console.error(e); }
+    } else {
+      localStorage.setItem(`dashboardState_${user.uid}`, JSON.stringify({ tasks: updated, metrics }));
     }
   };
 
@@ -173,8 +193,13 @@ export default function App() {
     setTasks(updated);
     setNewTaskTitle('');
     setShowTaskModal(false);
+    
     if (user.uid !== 'mock_exec_01' && user.uid !== 'mock_exec_google') {
-      await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'config', 'dashboardState'), { tasks: updated }, { merge: true });
+      try {
+        await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'config', 'dashboardState'), { tasks: updated }, { merge: true });
+      } catch(e) { console.error(e); }
+    } else {
+      localStorage.setItem(`dashboardState_${user.uid}`, JSON.stringify({ tasks: updated, metrics }));
     }
   };
 
