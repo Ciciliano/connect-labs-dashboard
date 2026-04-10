@@ -8,7 +8,7 @@ import {
 // Firebase Imports
 import { initializeApp } from 'firebase/app';
 import { getFirestore, doc, setDoc, onSnapshot } from 'firebase/firestore';
-import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 
 // --- Configuração Firebase Seguro ---
 const envConfig = import.meta.env.VITE_FIREBASE_CONFIG;
@@ -20,8 +20,8 @@ const firebaseConfig = envConfig ? JSON.parse(envConfig) : {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
+const db = getFirestore(app);
 const appId = import.meta.env.VITE_APP_ID || 'connect-labs-exec-v5';
 
 // --- Definição das Fases com Deadlines (Meses) ---
@@ -64,6 +64,11 @@ export default function App() {
   const [tasks, setTasks] = useState(INITIAL_TASKS);
   const [loading, setLoading] = useState(true);
 
+  // Estados Form Login
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPass, setLoginPass] = useState('');
+  const [loginError, setLoginError] = useState('');
+
   // Estados de Melhorias (CRUD & RevOps)
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
@@ -83,12 +88,21 @@ export default function App() {
     return () => unsub();
   }, []);
 
-  const handleLogin = async () => {
+  const handleLogin = async (e) => {
+    e?.preventDefault();
     setLoading(true);
-    try { await signInWithPopup(auth, provider); } 
+    setLoginError('');
+    try { 
+      await signInWithEmailAndPassword(auth, loginEmail, loginPass); 
+    } 
     catch (err) { 
-      console.warn("Simulando login fallback:", err);
-      setUser({ uid: 'mock_exec_01', displayName: 'Executivo Mock' });
+      console.warn("Firebase Auth falhou, verificando mock...");
+      // Hardcode provisório de segurança (Fallback Local / Produção sem chaves)
+      if (loginEmail === 'anderson.santos001@gmail.com' && loginPass === '$22$Aa01@$$') {
+         setUser({ uid: 'mock_exec_01', displayName: 'Anderson Santos' });
+      } else {
+         setLoginError('Credenciais inválidas ou não registradas.');
+      }
     }
     setLoading(false);
   };
@@ -169,13 +183,26 @@ export default function App() {
   if (!user) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 selection:bg-blue-500/30">
-        <div className="w-full max-w-md bg-slate-900 border border-slate-800 p-10 rounded-[3rem] shadow-2xl flex flex-col items-center text-center">
-          <div className="w-20 h-20 bg-blue-600 rounded-[2rem] flex items-center justify-center font-black text-4xl text-white mb-8">C</div>
-          <h1 className="text-3xl font-black text-white tracking-tighter uppercase mb-2">Connect Labs</h1>
-          <p className="text-slate-500 uppercase tracking-widest text-xs font-bold mb-10">Executive OS • Secure Login</p>
-          <button onClick={handleLogin} className="w-full py-4 bg-white hover:bg-slate-100 text-slate-950 rounded-2xl font-black uppercase tracking-widest text-sm flex items-center justify-center gap-3">
-             <LogIn size={18} strokeWidth={3} /> Autenticar via Google
-          </button>
+        <div className="w-full max-w-sm bg-slate-900 border border-slate-800 px-8 py-10 rounded-[3rem] shadow-2xl flex flex-col items-center">
+          <div className="w-20 h-20 bg-blue-600 rounded-[2rem] flex items-center justify-center font-black text-4xl text-white mb-6">C</div>
+          <h1 className="text-2xl font-black text-white tracking-tighter uppercase mb-2 text-center">Connect Labs</h1>
+          <p className="text-slate-500 uppercase tracking-widest text-[10px] font-bold mb-8 text-center">Executive Access</p>
+          
+          <form className="w-full space-y-4" onSubmit={handleLogin}>
+             {loginError && <div className="p-3 mb-2 bg-red-500/10 border border-red-500/20 text-red-500 text-xs text-center rounded-xl font-bold">{loginError}</div>}
+             <div>
+               <input type="email" placeholder="E-mail Corporativo" required value={loginEmail} onChange={e => setLoginEmail(e.target.value)} className="w-full px-5 py-4 bg-slate-950 border border-slate-800 rounded-2xl text-white text-sm focus:border-blue-500 outline-none transition-colors" />
+             </div>
+             <div>
+               <input type="password" placeholder="Senha Mestra" required value={loginPass} onChange={e => setLoginPass(e.target.value)} className="w-full px-5 py-4 bg-slate-950 border border-slate-800 rounded-2xl text-white text-sm focus:border-blue-500 outline-none transition-colors" />
+             </div>
+             <button type="submit" className="w-full py-4 mt-2 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black uppercase tracking-widest text-xs transition-transform active:scale-95 shadow-xl shadow-blue-500/20">
+                Acessar Dashboard
+             </button>
+             <button type="button" onClick={() => { signInWithPopup(auth, provider).catch(()=>{}); }} className="w-full py-3 bg-transparent border border-slate-700 text-slate-400 hover:text-white rounded-xl font-bold text-xs mt-2 transition-colors">
+                Alternativo: Entrar com Conta Google
+             </button>
+          </form>
         </div>
       </div>
     );
