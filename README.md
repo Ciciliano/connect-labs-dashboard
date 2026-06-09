@@ -1,16 +1,69 @@
-# React + Vite
+# Hermes Admin
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Painel operacional em `Next.js` para o control plane do Hermes no Supabase.
 
-Currently, two official plugins are available:
+## Escopo atual
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- login por e-mail e senha com Supabase Auth
+- bootstrap do primeiro admin
+- visao geral da organizacao
+- lista e detalhe de agentes
+- configuracao de prompt, tier, tools e executor
+- historico read-only
+- handoffs
+- tarefas e execucoes
+- memoria consolidada read-only
 
-## React Compiler
+## Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- `Next.js 16`
+- `React 19`
+- `Tailwind CSS`
+- `shadcn/ui`
+- `Supabase SSR`
 
-## Expanding the ESLint configuration
+## Variaveis de ambiente
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Copie `.env.example` para `.env.local` e preencha:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+SUPABASE_SECRET_KEY=
+HERMES_ADMIN_BOOTSTRAP_ENABLED=false
+HERMES_BOOTSTRAP_ORGANIZATION_SLUG=connect-labs
+HERMES_BOOTSTRAP_ADMIN_EMAIL=
+HERMES_BOOTSTRAP_ADMIN_PASSWORD=
+```
+
+`SUPABASE_SERVICE_ROLE_KEY` pode ser usado no lugar de `SUPABASE_SECRET_KEY`.
+
+## Rodando localmente
+
+```bash
+npm install
+npm run dev
+```
+
+Se o Node local estiver sem a cadeia de certificados do Windows carregada, rode:
+
+```bash
+set NODE_OPTIONS=--use-system-ca
+npm run dev
+```
+
+Servidor local padrao: [http://localhost:3000](http://localhost:3000)
+
+## Testes e build
+
+```bash
+npm test
+npm run build
+```
+
+## Seguranca
+
+- o frontend usa apenas a chave publishable no browser
+- a chave secreta fica restrita ao servidor para bootstrap e acoes administrativas
+- o painel foi desenhado sobre as tabelas novas com RLS
+- tabelas legadas sem endurecimento completo nao devem ser expostas aqui
